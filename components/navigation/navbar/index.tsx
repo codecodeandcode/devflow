@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Theme from "./theme";
+import MobileNavigation from "./MobileNavigation";
 
 export default function NavBar() {
   return (
@@ -27,6 +28,7 @@ export default function NavBar() {
       <p className="h3-bold">全局搜索</p>
       <div className="flex-between gap-5">
         <Theme />
+        <MobileNavigation />
       </div>
     </nav>
   );
