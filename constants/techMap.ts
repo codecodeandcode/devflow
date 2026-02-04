@@ -1,0 +1,15 @@
+export const techMap: { [key: string]: string } = {
+  javascript: "devicon-javascript-plain",
+  js: "devicon-javascript-plain",
+  react: "devicon-react-plain",
+  typescript: "devicon-typescript-plain",
+  ts: "devicon-typescript-plain",
+  python: "devicon-python-plain",
+  java: "devicon-java-plain",
+  ruby: "devicon-ruby-plain",
+  php: "devicon-php-plain",
+  html: "devicon-html5-plain",
+  css: "devicon-css3-plain",
+  docker: "devicon-docker-plain",
+  kubernetes: "devicon-kubernetes-plain",
+};

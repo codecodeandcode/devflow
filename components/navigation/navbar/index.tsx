@@ -6,7 +6,7 @@ import MobileNavigation from "./MobileNavigation";
 export default function NavBar() {
   return (
     <nav
-      className="flex-between background-light900_dark200 fixed z-50
+      className="fixed z-50 flex-between background-light900_dark200 
        w-full p-6 dark:shadow-none sm:px-12 shadow-light-300 gap-5"
     >
       <Link href={"/"} className="flex items-center gap-1">

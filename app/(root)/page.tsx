@@ -7,18 +7,19 @@ export default async function Home() {
   console.log(session);
   return (
     <>
-      <div className=" text-2xl font-black font-inter text-center dark:text-light-700">
-        Home11111111111
-        <form
-          action={async () => {
-            "use server";
-            await signOut({ redirectTo: ROUTES.SIGN_IN });
-          }}
-          className="px-10 pt-[100px]"
-        >
-          <Button type="submit">登出</Button>
-        </form>
-      </div>
+      <main>
+        <div className=" text-2xl font-black font-inter text-center dark:text-light-700">
+          <form
+            action={async () => {
+              "use server";
+              await signOut({ redirectTo: ROUTES.SIGN_IN });
+            }}
+            className="px-10 pt-[100px]"
+          >
+            <Button type="submit">登出</Button>
+          </form>
+        </div>
+      </main>
     </>
   );
 }
