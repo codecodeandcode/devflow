@@ -31,22 +31,22 @@ const hotQuestions = [
 const popularTags = [
   {
     _id: 1,
-    name: "React",
+    name: ["React"],
     questions: 1200,
   },
   {
     _id: 2,
-    name: "JavaScript",
+    name: ["JavaScript"],
     questions: 1500,
   },
   {
     _id: 3,
-    name: "CSS",
+    name: ["CSS"],
     questions: 1800,
   },
   {
     _id: 4,
-    name: "HTML",
+    name: ["HTML"],
     questions: 1100,
   },
 ];

@@ -2,36 +2,36 @@ export const sidebarLinks = [
   {
     imgURL: "/icons/home.svg",
     route: "/",
-    label: "Home",
+    label: "主页",
   },
   {
     imgURL: "/icons/users.svg",
     route: "/community",
-    label: "Community",
+    label: "社区",
   },
   {
     imgURL: "/icons/star.svg",
     route: "/collection",
-    label: "Collections",
+    label: "收藏",
   },
   {
     imgURL: "/icons/suitcase.svg",
     route: "/jobs",
-    label: "Find Jobs",
+    label: "找工作",
   },
   {
     imgURL: "/icons/tag.svg",
     route: "/tags",
-    label: "Tags",
+    label: "标签",
   },
   {
     imgURL: "/icons/user.svg",
     route: "/profile",
-    label: "Profile",
+    label: "个人中心",
   },
   {
     imgURL: "/icons/question.svg",
     route: "/ask-question",
-    label: "Ask a question",
+    label: "提问",
   },
 ];

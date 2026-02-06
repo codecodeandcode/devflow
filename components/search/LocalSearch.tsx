@@ -5,8 +5,6 @@ import { Input } from "../ui/input";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { formUrlQuery, removeKeysFromQuery } from "@/lib/url";
-import router from "next/router";
-import { clear } from "console";
 
 interface Props {
   imgSrc: string;
@@ -29,7 +27,7 @@ export default function LocalSearch({
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      if (search === query || search === null) return;
+      if (search === query || search === "") return;
       if (search) {
         const newUrl = formUrlQuery({
           params: searchParams.toString(),
