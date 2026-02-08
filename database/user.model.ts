@@ -11,7 +11,7 @@ export interface IUser {
   reputation?: number;
 }
 
-const user = new Schema(
+const userSchema = new Schema(
   {
     name: { type: String, required: true },
     username: { type: String, required: true },
@@ -25,6 +25,6 @@ const user = new Schema(
   { timestamps: true }
 );
 
-const User = models.user || model<IUser>("User", user);
+const User = models?.User || model<IUser>("User", userSchema);
 
 export default User;
