@@ -6,9 +6,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const getDeviconClassName = (techName: string[]) => {
+export const getDeviconClassName = (techName: string[] | string) => {
+  if (typeof techName === "string") {
+    techName = [techName];
+  }
+
   const normalizedTechName = techName
-    .join(" ")
+    ?.join(" ")
     .replace(/[ .]/g, "")
     .toLowerCase();
 
