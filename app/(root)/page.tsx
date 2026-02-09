@@ -3,6 +3,8 @@ import HomeFilter from "@/components/filter/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
+import { handleError } from "@/lib/handlers/error";
+import { ValidationError } from "@/lib/http-errors";
 import Link from "next/link";
 
 interface SearchParams {
@@ -117,8 +119,20 @@ const question = [
   },
 ];
 
+async function test() {
+  try {
+    throw new ValidationError({
+      title: ["Required"],
+      tags: ['"Java script is not a valid tag"'],
+    });
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
 export default async function Home({ searchParams }: SearchParams) {
   const { query = "", filter = "" } = await searchParams;
+  const result = await test();
 
   return (
     <>
