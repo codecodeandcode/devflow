@@ -55,3 +55,14 @@ export const AskQuestionSchema = z.object({
     .min(1, { message: "至少需要一个标签" })
     .max(3, { message: "最多只能有3个标签" }),
 });
+
+export const UserSchema = z.object({
+  name: z.string().min(1, { message: "需要姓名" }),
+  username: z.string().min(3, { message: "需要用户名" }),
+  email: z.string().email({ message: "请提供有效的邮箱" }),
+  bio: z.string().optional(),
+  image: z.string().url({ message: "请输入有效的URL" }).optional(),
+  location: z.string().optional(),
+  portfolio: z.string().url({ message: "请输入有效的URL" }).optional(),
+  reputation: z.number().optional(),
+});

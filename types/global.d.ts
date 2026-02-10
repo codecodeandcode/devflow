@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 interface QuestionCardProps {
   _id: number;
   title: string;
@@ -20,3 +22,19 @@ interface Author {
   name: string;
   image: string;
 }
+
+type ActionRespone<T = null> = {
+  success: boolean;
+  data?: T;
+  error?: {
+    message: string;
+    details?: Record<string, string[]>;
+  };
+  status?: number;
+};
+
+type SuccessResponse<T = null> = ActionRespone<T> & { success: true };
+type ErrorResponse = ActionRespone<undefined> & { success: false };
+
+type APIErrorResponse = NextResponse<ErrorResponse>;
+type APIResponse<T = null> = NextResponse<SuccesResponse<T> | ErrorResponse<T>>;

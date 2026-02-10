@@ -119,20 +119,8 @@ const question = [
   },
 ];
 
-async function test() {
-  try {
-    throw new ValidationError({
-      title: ["Required"],
-      tags: ['"Java script is not a valid tag"'],
-    });
-  } catch (error) {
-    return handleError(error);
-  }
-}
-
 export default async function Home({ searchParams }: SearchParams) {
   const { query = "", filter = "" } = await searchParams;
-  const result = await test();
 
   return (
     <>
