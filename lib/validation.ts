@@ -66,3 +66,23 @@ export const UserSchema = z.object({
   portfolio: z.string().url({ message: "请输入有效的URL" }).optional(),
   reputation: z.number().optional(),
 });
+
+export const AccountSchema = z.object({
+  userId: z.string().min(1, { message: "需要有效的用户ID" }),
+  name: z.string().min(1, { message: "需要账户名称" }),
+  image: z.string().url({ message: "请输入有效的URL" }).optional(),
+  password: z
+    .string()
+    .min(6, { message: "密码必须大于6个字符" })
+    .max(50, { message: "密码必须小于50个字符." })
+    .regex(/[A-Z]/, {
+      message: "密码必须包含小写字母.",
+    })
+    .regex(/[a-z]/, {
+      message: "密码必须包含大写字母.",
+    })
+    .regex(/[0-9]/, { message: "密码必须包含数字" })
+    .optional(),
+  provider: z.string().min(1, { message: "需要提供商名称" }),
+  providerAccountId: z.string().min(1, { message: "需要提供商账户ID" }),
+});
