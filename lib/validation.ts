@@ -86,3 +86,14 @@ export const AccountSchema = z.object({
   provider: z.string().min(1, { message: "需要提供商名称" }),
   providerAccountId: z.string().min(1, { message: "需要提供商账户ID" }),
 });
+
+export const SignInWithOAuthSchema = z.object({
+  provider: z.enum(["google", "github"]),
+  providerAccountId: z.string().min(1, { message: "ProviderId是需要的" }),
+  user: z.object({
+    name: z.string().min(1, { message: "需要名字" }),
+    username: z.string().min(3, { message: "用户名必须长于3个字符" }),
+    email: z.string().email({ message: "请提供一个可用的邮箱地址" }),
+    image: z.string().url("错误的图片URL").optional(),
+  }),
+});
