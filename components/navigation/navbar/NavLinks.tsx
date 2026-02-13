@@ -11,11 +11,13 @@ import { text } from "stream/consumers";
 
 export default function NavLinks({
   isMobileNav = false,
+  userId,
 }: {
   isMobileNav: boolean;
+  userId?: string;
 }) {
   const pathName = usePathname();
-  const userId = 1;
+
   return (
     <>
       {sidebarLinks.map((item) => {

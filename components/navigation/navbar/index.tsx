@@ -2,8 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import Theme from "./theme";
 import MobileNavigation from "./MobileNavigation";
+import { auth } from "@/auth";
+import UserAvatar from "@/components/UserAvatar";
 
-export default function NavBar() {
+export default async function NavBar() {
+  const session = await auth();
+
   return (
     <nav
       className="fixed z-50 flex-between background-light900_dark200 
@@ -28,6 +32,13 @@ export default function NavBar() {
       <p className="h3-bold">全局搜索</p>
       <div className="flex-between gap-5">
         <Theme />
+        {session?.user?.id && (
+          <UserAvatar
+            id={session.user.id}
+            name={session.user.name!}
+            image={session.user?.image}
+          />
+        )}
         <MobileNavigation />
       </div>
     </nav>
