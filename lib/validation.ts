@@ -37,6 +37,7 @@ export const SignUpSchema = z.object({
       message: "密码必须包含大写字母.",
     })
     .regex(/[0-9]/, { message: "密码必须包含数字" }),
+  name: z.string().min(1, { message: "需要名字" }).optional(),
 });
 
 export const AskQuestionSchema = z.object({

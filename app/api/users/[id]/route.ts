@@ -16,7 +16,7 @@ export async function GET(
   if (!id) throw new NotFoundError("User");
   try {
     await dbConnet();
-    const user = User.findById(id);
+    const user = await User.findById(id);
     if (!user) throw new NotFoundError("User");
     return NextResponse.json(
       {
@@ -39,7 +39,7 @@ export async function DELETE(
   if (!id) throw new NotFoundError("User");
   try {
     await dbConnet();
-    const user = User.findByIdAndDelete(id);
+    const user = await User.findByIdAndDelete(id);
     if (!user) throw new NotFoundError("User");
     return NextResponse.json(
       {
@@ -63,7 +63,7 @@ export async function PUT(
   if (!id) throw new NotFoundError("User");
   try {
     await dbConnet();
-    const body = request.json();
+    const body = await request.json();
     const validateData = UserSchema.partial().parse(body);
     const updatedUser = await User.findByIdAndUpdate(id, validateData, {
       new: true,

@@ -15,12 +15,15 @@ import {
 import { Input } from "@/components/ui/input";
 import ROUTES from "@/constants/routes";
 import Link from "next/link";
+import { ActionRespone } from "@/types/global";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface AuthFormProps<T extends FieldValues> {
   // 关键修改：将 schema 定义为可接受 T 的任意 ZodType
   schema: z.ZodType<any, any, any>;
   defaultValues: T;
-  onSubmit: (data: T) => Promise<{ success: boolean }>;
+  onSubmit: (data: T) => Promise<ActionRespone>;
   formType: "SIGN_IN" | "SIGN_UP";
 }
 
@@ -30,6 +33,7 @@ const AuthForm = <T extends FieldValues>({
   formType,
   onSubmit,
 }: AuthFormProps<T>) => {
+  const router = useRouter();
   const form = useForm<T>({
     // 关键修复：显式断言 resolver
     resolver: zodResolver(schema) as any,
@@ -38,7 +42,13 @@ const AuthForm = <T extends FieldValues>({
 
   // 关键修复：直接定义处理函数，在 handleSubmit 中断言
   const handleSubmit = async (data: T) => {
-    await onSubmit(data);
+    const result = (await onSubmit(data)) as ActionRespone;
+    if (result?.success) {
+      toast.success(formType === "SIGN_IN" ? "登录成功!" : "注册成功!");
+      router.push(ROUTES.HOME);
+    } else {
+      toast.error(`${result?.status}:${result?.error?.message}`);
+    }
   };
 
   const buttonText = formType === "SIGN_IN" ? "登录" : "注册";
@@ -64,12 +74,14 @@ const AuthForm = <T extends FieldValues>({
                     ? "密码"
                     : fieldProps.name === "username"
                     ? "用户名"
+                    : fieldProps.name === "name"
+                    ? "姓名"
                     : fieldProps.name}
                 </FormLabel>
                 <FormControl>
                   <Input
                     required
-                    type={fieldProps.name === "密码" ? "密码" : "text"}
+                    type={fieldProps.name === "password" ? "password" : "text"}
                     {...fieldProps}
                     className="paragraph-regular background-light900_dark300 light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
                   />

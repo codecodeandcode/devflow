@@ -4,6 +4,10 @@ import Google from "next-auth/providers/google";
 import { api } from "./lib/api";
 import { ActionRespone } from "./types/global";
 import { IAccount } from "./database/account.model";
+import { SignInSchema } from "./lib/validation";
+import { IUserDoc } from "./database/user.model";
+import bcrypt from "bcryptjs";
+import Credentials from "next-auth/providers/credentials";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -15,6 +19,40 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
       allowDangerousEmailAccountLinking: true,
+    }),
+    Credentials({
+      async authorize(credentials) {
+        const validatedFields = SignInSchema.safeParse(credentials);
+        if (!validatedFields.success) {
+          throw new Error("Invalid input");
+        } else {
+          const { email, password } = validatedFields.data;
+
+          const { data: exsistingAccount } = (await api.account.getByProvider(
+            email
+          )) as ActionRespone<IAccount>;
+          if (!exsistingAccount) {
+            return null;
+          }
+          const { data: exsistingUser } = (await api.users.getById(
+            exsistingAccount.userId.toString()!
+          )) as ActionRespone<IUserDoc>;
+          if (!exsistingUser) return null;
+          const isValidPassword = await bcrypt.compare(
+            password,
+            exsistingAccount.password!
+          );
+          if (isValidPassword) {
+            return {
+              id: exsistingUser._id.toString(),
+              name: exsistingUser.name,
+              email: exsistingUser.email,
+              image: exsistingUser.image,
+            };
+          }
+          return null;
+        }
+      },
     }),
   ],
   callbacks: {
