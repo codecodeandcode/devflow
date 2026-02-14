@@ -46,7 +46,7 @@ export const AskQuestionSchema = z.object({
     .min(5, { message: "需要标题" })
     .max(100, { message: "标题不能超过100个字符" }),
   content: z.string().min(10, { message: "需要内容" }),
-  tag: z
+  tags: z
     .array(
       z
         .string()

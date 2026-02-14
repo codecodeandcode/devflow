@@ -1,9 +1,12 @@
-"use client";
-
+import { auth } from "@/auth";
 import QuestionForm from "@/components/forms/QuestionForm";
-import React from "react";
+import { redirect } from "next/navigation";
 
-export default function AskAQuestion() {
+export default async function AskAQuestion() {
+  const session = await auth();
+  if (!session) {
+    return redirect("/sign-in");
+  }
   return (
     <div>
       <h1 className="h1-bold text-dark100_light900">提问</h1>

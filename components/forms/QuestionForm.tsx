@@ -14,11 +14,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { useRef } from "react";
+import { useRef, useTransition } from "react";
 import { MDXEditorMethods } from "@mdxeditor/editor";
 import dynamic from "next/dynamic";
 import * as z from "zod";
 import TagCard from "../cards/TagCard";
+import { createQuestion } from "@/lib/actions/question.action";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import ROUTES from "@/constants/routes";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   // Make sure we turn SSR off
@@ -27,13 +32,15 @@ const Editor = dynamic(() => import("@/components/editor"), {
 
 export default function QuestionForm() {
   const editorRef = useRef<MDXEditorMethods>(null);
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof AskQuestionSchema>>({
     resolver: zodResolver(AskQuestionSchema),
     defaultValues: {
       title: "",
       content: "",
-      tag: [],
+      tags: [],
     },
   });
 
@@ -49,16 +56,16 @@ export default function QuestionForm() {
         tagInput.length < 15 &&
         !fieldProps.value.includes(tagInput)
       ) {
-        form.setValue("tag", [...fieldProps.value, tagInput]);
+        form.setValue("tags", [...fieldProps.value, tagInput]);
         e.currentTarget.value = "";
-        form.clearErrors("tag");
+        form.clearErrors("tags");
       } else if (tagInput.length >= 15) {
-        form.setError("tag", {
+        form.setError("tags", {
           type: "manual",
           message: "标签长度不能超过15个字符",
         });
       } else if (fieldProps.value.includes(tagInput)) {
-        form.setError("tag", {
+        form.setError("tags", {
           type: "manual",
           message: "标签已存在",
         });
@@ -66,15 +73,21 @@ export default function QuestionForm() {
     }
   }
 
-  function handleCreateQuestion(data: z.infer<typeof AskQuestionSchema>) {
-    console.log(data);
+  async function handleCreateQuestion(data: z.infer<typeof AskQuestionSchema>) {
+    startTransition(async () => {
+      const result = await createQuestion(data);
+      if (result.success) {
+        toast.success("问题发布成功!");
+        if (result.data) router.push(ROUTES.QUESTION(result.data._id));
+      } else toast.error("发布问题失败,请稍后再试!");
+    });
   }
 
   function handleRemove(tag: string, fieldProps: { value: string[] }) {
     const newTags = fieldProps.value.filter((t) => t !== tag);
-    form.setValue("tag", newTags);
+    form.setValue("tags", newTags);
     if (newTags.length === 0) {
-      form.setError("tag", {
+      form.setError("tags", {
         type: "manual",
         message: "请至少添加一个标签",
       });
@@ -132,7 +145,7 @@ export default function QuestionForm() {
         />
         <FormField
           control={form.control}
-          name="tag"
+          name="tags"
           render={({ field: fieldProps }) => (
             <FormItem className="flex w-full flex-col gap-3">
               <FormLabel className="paragraph-semibold text-dark400_light800">
@@ -173,9 +186,17 @@ export default function QuestionForm() {
         <div className="mt-16 flex justify-end ">
           <Button
             type="submit"
+            disabled={isPending}
             className="cursor-pointer primary-gradient w-fit text-light-900!"
           >
-            发布问题
+            {isPending ? (
+              <>
+                <ReloadIcon className="mr-2 size-4 animate-spin" />
+                <span>发布中...</span>
+              </>
+            ) : (
+              "发布问题"
+            )}
           </Button>
         </div>
       </form>
