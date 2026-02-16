@@ -27,10 +27,10 @@ export default function Metric({
     <>
       <Image
         className={`${imgStyles} rounded-full object-contain`}
-        src={imageUrl}
+        src={imageUrl ? imageUrl : "/default-avatar.jpg"}
         width={16}
         height={16}
-        alt={alt}
+        alt={alt ? alt : "avatar"}
       />
       <p className={`${textStyles} flex items-center gap-1`}>
         {value}

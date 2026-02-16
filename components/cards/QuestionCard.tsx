@@ -4,13 +4,25 @@ import Link from "next/link";
 import React from "react";
 import TagCard from "./TagCard";
 import Metric from "../Metric";
+import { QuestionCardProps, Tags } from "@/types/global";
+import { date } from "zod";
 
 interface Props {
   question: QuestionCardProps;
 }
 
 export default function QuestionCard({
-  question: { _id, title, content, tags, author, date, upvotes, answers, view },
+  question: {
+    _id,
+    title,
+    content,
+    tags,
+    author,
+    createdAt,
+    upvotes,
+    answers,
+    views,
+  },
 }: Props) {
   return (
     <div className="card-wrapper rounded-[10px] p-9 sm:px-11">
@@ -22,9 +34,9 @@ export default function QuestionCard({
           className="sm:hidden flex line-clamp-1 subtle-regular
           text-dark400_light700"
         >
-          {getTimeStamp(date)}
+          {getTimeStamp(createdAt)}
         </span>
-        <Link href={ROUTES.QUESTION(_id)}>
+        <Link href={ROUTES.QUESTION(String(_id))}>
           <h3
             className="sm:h3-semibold base-semibold text-dark200_light900
             line-clamp-1 flex-1"
@@ -50,8 +62,8 @@ export default function QuestionCard({
           imageUrl={author.image}
           alt={author.name}
           value={author.name}
-          title={`${getTimeStamp(date)} 询问`}
-          href={ROUTES.PROFILE(Number(author._id))}
+          title={`${getTimeStamp(createdAt)} 询问`}
+          href={ROUTES.PROFILE(author._id)}
           textStyles="body-medium text-dark400_light700"
           isAuthor
         />
@@ -73,7 +85,7 @@ export default function QuestionCard({
           <Metric
             imageUrl="/icons/eye.svg"
             alt="eye"
-            value={view}
+            value={views}
             title={`看过`}
             textStyles="small-medium text-dark400_light800"
           />

@@ -1,13 +1,20 @@
 "use server";
 
 import { ActionRespone, ErrorResponse } from "@/types/global";
-import { AskQuestionSchema } from "../validation";
+import {
+  AskQuestionSchema,
+  EditQuestionSchema,
+  GetQuestionSchema,
+  PaginatedSearchParamsSchema,
+} from "../validation";
 import action from "../handlers/action";
 import { handleError } from "../handlers/error";
-import mongoose from "mongoose";
+import mongoose, { QueryFilter } from "mongoose";
 import Question from "@/database/question.model";
-import Tag from "@/database/tag.model";
+import Tag, { ITag } from "@/database/tag.model";
 import TagQuestion from "@/database/tagQuestion.model";
+import { Question as IQuestion } from "@/types/global";
+import { PaginationSearchParams } from "@/types/global";
 
 export async function createQuestion(
   params: CreateQuestionParams
@@ -22,10 +29,11 @@ export async function createQuestion(
     return handleError(validationResult) as ErrorResponse;
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
   const { title, content, tags } = validationResult.params!;
   const userId = validationResult?.session?.user?.id;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
     const [question] = await Question.create(
@@ -67,9 +75,219 @@ export async function createQuestion(
       status: 200,
     };
   } catch (error) {
-    session.abortTransaction();
+    await session.abortTransaction();
     return handleError(error) as ErrorResponse;
   } finally {
-    session.endSession();
+    await session.endSession();
+  }
+}
+
+export async function editQuestion(
+  params: EditQuestionParams
+): Promise<ActionRespone<{ _id: string }>> {
+  const validationResult = await action({
+    params,
+    schema: EditQuestionSchema,
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { title, content, tags, questionId } = validationResult.params!;
+  const userId = validationResult?.session?.user?.id;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const question = await Question.findById(questionId).populate("tags");
+    if (!question) {
+      throw new Error("问题不存在");
+    }
+    if (question.author.toString() !== userId) {
+      throw new Error("你没有权限编辑此问题");
+    }
+
+    if (question.title !== title || question.content !== content) {
+      question.title = title;
+      question.content = content;
+      await question.save({ session });
+    }
+
+    await Question.findByIdAndUpdate(
+      questionId,
+      { title, content },
+      { session }
+    );
+
+    const tagsToAdd = tags.filter(
+      (tag) =>
+        !question.tags.some((t: ITag) =>
+          t.name.toLowerCase().includes(tag.toLowerCase())
+        )
+    );
+    const tagsToRemove = question.tags.filter(
+      (tag: ITag) =>
+        !tags.some((t) => t.toLowerCase() === tag.name.toLowerCase())
+    );
+
+    const newTagDocuments = [];
+
+    if (tagsToAdd.length > 0) {
+      for (const tag of tagsToAdd) {
+        const existingTag = await Tag.findOneAndUpdate(
+          { name: { $regex: `^${tag}$`, $options: "i" } },
+          { $setOnInsert: { name: tag }, $inc: { questions: 1 } },
+          { upsert: true, new: true, session }
+        );
+
+        if (existingTag) {
+          newTagDocuments.push({
+            tag: existingTag._id,
+            question: questionId,
+          });
+
+          question.tags.push(existingTag._id);
+        }
+      }
+    }
+
+    if (tagsToRemove.length > 0) {
+      const tagIdsToRemove = tagsToRemove.map((tag: ITag) => tag._id);
+      await Tag.updateMany(
+        {
+          _id: { $in: tagIdsToRemove },
+        },
+        { $inc: { questions: -1 } },
+        { session }
+      );
+
+      await TagQuestion.deleteMany(
+        {
+          tag: { $in: tagIdsToRemove },
+          question: questionId,
+        },
+        { session }
+      );
+      question.tags = question.tags.filter(
+        (tag: mongoose.Types.ObjectId) =>
+          !tagIdsToRemove.some((id: mongoose.Types.ObjectId) =>
+            id.equals(tag._id)
+          )
+      );
+    }
+    await question.save({ session });
+    await session.commitTransaction();
+
+    if (newTagDocuments.length > 0) {
+      await TagQuestion.insertMany(newTagDocuments, { session });
+    }
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(question)),
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    return handleError(error) as ErrorResponse;
+  } finally {
+    await session.endSession();
+  }
+}
+
+export async function getQuestion(
+  params: GetQuestionParams
+): Promise<ActionRespone<IQuestion>> {
+  const validationResult = await action({
+    params,
+    schema: GetQuestionSchema,
+    authorize: true,
+  });
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { questionId } = validationResult.params!;
+  try {
+    const question = await Question.findById(questionId).populate("tags");
+    if (!question) {
+      throw new Error("问题不存在");
+    }
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(question)),
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getQuestions(
+  params: PaginationSearchParams
+): Promise<ActionRespone<{ questions: IQuestion[]; isNext: boolean }>> {
+  const validationResult = await action({
+    params,
+    schema: PaginatedSearchParamsSchema,
+  });
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { page = 1, pageSize = 10, query, filter } = validationResult.params!;
+  const skip = (Number(page) - 1) * pageSize;
+  const limit = Number(pageSize);
+
+  const filterQuery: QueryFilter<typeof Question> = {};
+
+  if (filter === "recommended")
+    return { success: true, data: { questions: [], isNext: false } };
+
+  if (query) {
+    filterQuery.$or = [
+      { title: { $regex: new RegExp(query, "i") } },
+      { content: { $regex: new RegExp(query, "i") } },
+    ];
+  }
+
+  let sortCriteria = {};
+
+  switch (filter) {
+    case "newest":
+      sortCriteria = { createdAt: -1 };
+      break;
+    case "unanswsered":
+      filterQuery.answers = 0;
+      sortCriteria = { createdAt: -1 };
+      break;
+    case "popular":
+      sortCriteria = { upvotes: -1 };
+      break;
+    default:
+      sortCriteria = { createdAt: -1 };
+      break;
+  }
+
+  try {
+    const totalQuestions = await Question.countDocuments(filterQuery);
+
+    const questions = await Question.find(filterQuery)
+      .populate("tags", "name") //只返回tags的name字段
+      .populate("author", "name image") //只返回author的name和image字段
+      .lean()
+      .sort(sortCriteria)
+      .skip(skip)
+      .limit(limit);
+    const isNext = totalQuestions > skip + questions.length;
+    return {
+      success: true,
+      data: {
+        questions: JSON.parse(JSON.stringify(questions)),
+        isNext,
+      },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
   }
 }

@@ -21,7 +21,22 @@ export const getDeviconClassName = (techName: string[] | string) => {
     : "devicon-devicon-plain";
 };
 
-export const getTimeStamp = (date: Date): string => {
+export const getTimeStamp = (
+  createdAt?: Date | string | number | null
+): string => {
+  if (!createdAt) {
+    return "刚刚";
+  }
+
+  const date =
+    createdAt instanceof Date
+      ? createdAt
+      : new Date(createdAt as string | number);
+
+  if (Number.isNaN(date.getTime())) {
+    return "刚刚";
+  }
+
   const now = Date.now();
   const past = date.getTime();
   const diff = now - past;

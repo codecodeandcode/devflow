@@ -1,20 +1,20 @@
 import { NextResponse } from "next/server";
 
 interface QuestionCardProps {
-  _id: number;
+  _id: string;
   title: string;
   content: string;
   tags: Tags[];
   author: Author;
-  date: Date;
+  createdAt: Date;
   upvotes: number;
   answers: number;
-  view: number;
+  views: number;
 }
 
 interface Tags {
   _id: string;
-  name: string[];
+  name: string;
 }
 
 interface Author {
@@ -42,4 +42,25 @@ type APIResponse<T = null> = NextResponse<SuccesResponse<T> | ErrorResponse<T>>;
 interface RouterParams {
   params: Promise<Record<string, string>>;
   searchParams: Promise<Record<string, string>>;
+}
+
+export interface Question {
+  _id: string;
+  title: string;
+  content: string;
+  tags: Tags[];
+  views: number;
+  upvotes: number;
+  downvotes: number;
+  answers: number;
+  author: Schema.Types.ObjectId;
+  createdAt: Date;
+}
+
+export interface PaginationSearchParams {
+  page?: number;
+  pageSize?: number;
+  query?: string;
+  filter?: string;
+  sort?: string;
 }
