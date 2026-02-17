@@ -3,12 +3,14 @@ import Link from "next/link";
 import React from "react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface Props {
   id: string;
   name: string;
   image?: string;
   className?: string;
+  fallbackClassName: string;
 }
 
 export default function UserAvatar({
@@ -16,6 +18,7 @@ export default function UserAvatar({
   name,
   image,
   className = "h-9 w-9",
+  fallbackClassName = "text-[10px]",
 }: Props) {
   const initials = name
     .split(" ")
@@ -36,7 +39,13 @@ export default function UserAvatar({
             height={36}
           />
         ) : (
-          <AvatarFallback className="primary-gradient font-space-grotesk font-bold tracking-wider text-white">
+          <AvatarFallback
+            className={cn(
+              `primary-gradient font-space-grotesk font-bold tracking-wider
+           text-white`,
+              fallbackClassName
+            )}
+          >
             {initials}
           </AvatarFallback>
         )}
