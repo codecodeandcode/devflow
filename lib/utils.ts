@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { techMap } from "@/constants/techMap";
+import { techDescriptionMap, techMap } from "@/constants/techMap";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -19,6 +19,24 @@ export const getDeviconClassName = (techName: string[] | string) => {
   return techMap[normalizedTechName]
     ? `${techMap[normalizedTechName]} colored`
     : "devicon-devicon-plain";
+};
+
+export const getTagDescription = (techName: string[] | string): string => {
+  if (typeof techName === "string") {
+    techName = [techName];
+  }
+
+  const normalizedTechName = techName
+    ?.join(" ")
+    .replace(/[ .]/g, "")
+    .toLowerCase();
+
+  if (techDescriptionMap[normalizedTechName]) {
+    return techDescriptionMap[normalizedTechName];
+  }
+
+  const fallbackName = techName?.[0] || "该技术";
+  return `${fallbackName} 相关技术标签`;
 };
 
 export const getTimeStamp = (

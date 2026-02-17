@@ -11,6 +11,7 @@ interface Props {
   placeholder: string;
   otherClass?: string;
   route: string;
+  iconPostion?: "left" | "right";
 }
 
 export default function LocalSearch({
@@ -18,6 +19,7 @@ export default function LocalSearch({
   placeholder,
   otherClass,
   route,
+  iconPostion = "left",
 }: Props) {
   const pathName = usePathname();
   const router = useRouter();
@@ -54,13 +56,15 @@ export default function LocalSearch({
       className={`background-light800_darkgradient flex min-h-[56px]
     grow items-center gap-4 rounded-[10px] px-4 ${otherClass}`}
     >
-      <Image
-        src={imgSrc}
-        width={24}
-        height={24}
-        alt="搜索"
-        className="cursor-pointer"
-      />
+      {iconPostion === "left" && (
+        <Image
+          src={imgSrc}
+          width={24}
+          height={24}
+          alt="搜索"
+          className="cursor-pointer"
+        />
+      )}
       <Input
         className="outline-none no-focus paragraph-regular 
         placeholder text-dark400_light700
@@ -70,6 +74,15 @@ export default function LocalSearch({
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
+      {iconPostion === "right" && (
+        <Image
+          src={imgSrc}
+          width={15}
+          height={15}
+          alt="搜索"
+          className="cursor-pointer"
+        />
+      )}
     </div>
   );
 }

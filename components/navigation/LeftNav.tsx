@@ -47,6 +47,7 @@ export default async function LeftNavBar() {
             >
               <Link href={ROUTES.SIGN_IN}>
                 <Image
+                  className="invert-colors"
                   src={"/icons/account.svg"}
                   alt="Account"
                   width={20}
@@ -65,6 +66,7 @@ export default async function LeftNavBar() {
             >
               <Link href={ROUTES.SIGN_IN}>
                 <Image
+                  className="invert-colors"
                   src={"/icons/sign-up.svg"}
                   alt="Account"
                   width={20}

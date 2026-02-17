@@ -40,7 +40,7 @@ export default function NavLinks({
             )}
           >
             <Image
-              className={cn({ "inverted-colors": !isActive })}
+              className={cn({ "invert-colors": !isActive })}
               src={item.imgURL}
               alt={item.label}
               width={20}
