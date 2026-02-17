@@ -68,7 +68,7 @@ export default function TagCard({
     ) : (
       <Link
         className="flex justify-between gap-2"
-        href={ROUTES.TAGS(Number(_id))}
+        href={ROUTES.TAG(_id.toString())}
       >
         {Content}
       </Link>

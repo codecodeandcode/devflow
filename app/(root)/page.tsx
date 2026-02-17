@@ -1,8 +1,10 @@
 import QuestionCard from "@/components/cards/QuestionCard";
+import DataRenderer from "@/components/DataRenderer";
 import HomeFilter from "@/components/filter/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
+import { EMPTY_QUESTION } from "@/constants/states";
 import { getQuestions } from "@/lib/actions/question.action";
 import { handleError } from "@/lib/handlers/error";
 import { ValidationError } from "@/lib/http-errors";
@@ -155,27 +157,19 @@ export default async function Home({ searchParams }: SearchParams) {
         />
       </section>
       <HomeFilter />
-      {success ? (
-        <div className="mt-10 flex w-full flex-col gap-6">
-          {questions && questions.length > 0 ? (
-            questions.map((question) => {
-              return <QuestionCard key={question._id} question={question} />;
-            })
-          ) : (
-            <div className="mt-10 flex w-full items-center justify-center">
-              <p className="text-dark400_light700">
-                没有找到相关问题,试试其他关键词吧!
-              </p>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="mt-10 w-full flex items-center justify-center">
-          <p className="text-dark400_light700">
-            {error?.message || "加载问题失败,请稍后再试!"}
-          </p>
-        </div>
-      )}
+      <DataRenderer
+        success={success}
+        error={error}
+        data={questions}
+        empty={EMPTY_QUESTION}
+        render={(questions) => (
+          <div className="mt-10 flex w-full flex-col gap-6">
+            {questions.map((question) => (
+              <QuestionCard key={question._id} question={question} />
+            ))}
+          </div>
+        )}
+      />
     </>
   );
 }
