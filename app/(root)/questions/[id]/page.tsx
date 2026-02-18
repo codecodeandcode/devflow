@@ -1,23 +1,27 @@
 import TagCard from "@/components/cards/TagCard";
 import Preview from "@/components/editor/Preview";
+import AnswerForm from "@/components/forms/AnswerForm";
 import Metric from "@/components/Metric";
 import UserAvatar from "@/components/UserAvatar";
 import ROUTES from "@/constants/routes";
-import { getQuestion } from "@/lib/actions/question.action";
+import { getQuestion, incrementViews } from "@/lib/actions/question.action";
 import { formatNumber, getTimeStamp } from "@/lib/utils";
 import { RouterParams } from "@/types/global";
-import { create } from "domain";
-import { get } from "http";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 
 export default async function QuestionDetail({ params }: RouterParams) {
   const { id } = await params;
+
   const { success, data: question } = await getQuestion({ questionId: id });
-
   if (!success || !question) return redirect("/404");
-
   const { author, createdAt, answers, views, tags } = question;
+
+  after(async () => {
+    await incrementViews({ questionId: id });
+  });
+
   return (
     <>
       <div className="flex-start w-full flex-col ">
@@ -72,6 +76,9 @@ export default async function QuestionDetail({ params }: RouterParams) {
         {tags.map((tag) => (
           <TagCard key={tag._id} _id={tag._id} compact name={tag.name} />
         ))}
+      </div>
+      <div className="my-5">
+        <AnswerForm />
       </div>
     </>
   );

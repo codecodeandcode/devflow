@@ -118,3 +118,11 @@ export const PaginatedSearchParamsSchema = z.object({
 export const GetTagQuetionsSchema = PaginatedSearchParamsSchema.extend({
   tagId: z.string().min(1, { message: "需要标签ID" }),
 });
+
+export const IncrementViewsSchema = z.object({
+  questionId: z.string().min(1, { message: "需要问题ID" }),
+});
+
+export const AnswerSchema = z.object({
+  content: z.string().min(10, { message: "需要内容" }),
+});
