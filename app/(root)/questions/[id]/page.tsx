@@ -78,7 +78,7 @@ export default async function QuestionDetail({ params }: RouterParams) {
         ))}
       </div>
       <div className="my-5">
-        <AnswerForm />
+        <AnswerForm questionId={question._id} />
       </div>
     </>
   );

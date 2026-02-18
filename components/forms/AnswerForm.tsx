@@ -12,18 +12,21 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { AnswerSchema } from "@/lib/validation";
-import { useRef, useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { MDXEditorMethods } from "@mdxeditor/editor";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
+import { createAnswer } from "@/lib/actions/answer.action";
+import { toast } from "sonner";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   // Make sure we turn SSR off
   ssr: false,
 });
 
-export default function AnswerForm() {
+export default function AnswerForm({ questionId }: { questionId: string }) {
+  const [isAnswering, startAnsweringTransition] = useTransition();
   const [issubitting, setIsSubmitting] = useState(false);
   const [isAISubmitting, setIsAISubmitting] = useState(false);
 
@@ -38,7 +41,18 @@ export default function AnswerForm() {
 
   // 关键修复：直接定义处理函数，在 handleSubmit 中断言
   const handleSubmit = async (value: z.infer<typeof AnswerSchema>) => {
-    console.log("提交的答案内容:", value);
+    startAnsweringTransition(async () => {
+      const result = await createAnswer({
+        questionId: questionId,
+        content: value.content,
+      });
+      if (result.success) {
+        form.reset();
+        toast.success("答案提交成功!");
+      } else {
+        toast.error(result.error?.message || "答案提交失败，请重试!");
+      }
+    });
   };
 
   return (
@@ -94,7 +108,7 @@ export default function AnswerForm() {
           />
           <div className="flex justify-end">
             <Button type="submit" className="primary-gradient w-fit">
-              {issubitting ? (
+              {isAnswering ? (
                 <>
                   <ReloadIcon className="mr-2 size-4 animate-spin" />
                   提交中...

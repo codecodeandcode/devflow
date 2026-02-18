@@ -126,3 +126,7 @@ export const IncrementViewsSchema = z.object({
 export const AnswerSchema = z.object({
   content: z.string().min(10, { message: "需要内容" }),
 });
+
+export const CreateAnswerSchema = AnswerSchema.extend({
+  questionId: z.string().min(1, { message: "需要问题ID" }),
+});
