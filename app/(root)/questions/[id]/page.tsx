@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import AllAnswers from "@/components/answers/AllAnswers";
 import TagCard from "@/components/cards/TagCard";
 import Preview from "@/components/editor/Preview";
@@ -15,6 +16,7 @@ import { after } from "next/server";
 
 export default async function QuestionDetail({ params }: RouterParams) {
   const { id } = await params;
+  const session = await auth();
 
   const { success, data: question } = await getQuestion({ questionId: id });
 
@@ -101,7 +103,12 @@ export default async function QuestionDetail({ params }: RouterParams) {
         />
       </section>
       <section className="my-5">
-        <AnswerForm questionId={question._id} />
+        <AnswerForm
+          session={session}
+          questionId={question._id}
+          questionTitle={question.title}
+          questionContent={question.content}
+        />
       </section>
     </>
   );

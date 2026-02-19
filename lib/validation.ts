@@ -134,3 +134,11 @@ export const CreateAnswerSchema = AnswerSchema.extend({
 export const GetAnswerSchema = PaginatedSearchParamsSchema.extend({
   questionId: z.string().min(1, { message: "需要问题ID" }),
 });
+
+export const AIAnswerSchema = z.object({
+  question: z
+    .string()
+    .min(5, { message: "需要内容" })
+    .max(200, { message: "问题太长了，请精简一下" }),
+  content: z.string().min(100, { message: "需要内容大于100个字符" }),
+});

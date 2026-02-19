@@ -19,16 +19,28 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
 import { createAnswer } from "@/lib/actions/answer.action";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
+import { Session } from "next-auth";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   // Make sure we turn SSR off
   ssr: false,
 });
 
-export default function AnswerForm({ questionId }: { questionId: string }) {
+export default function AnswerForm({
+  questionId,
+  questionTitle,
+  questionContent,
+  session,
+}: {
+  questionId: string;
+  questionTitle: string;
+  questionContent: string;
+  session: Session | null;
+}) {
   const [isAnswering, startAnsweringTransition] = useTransition();
-  const [issubitting, setIsSubmitting] = useState(false);
   const [isAISubmitting, setIsAISubmitting] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
 
   const editorRef = useRef<MDXEditorMethods>(null);
 
@@ -49,11 +61,48 @@ export default function AnswerForm({ questionId }: { questionId: string }) {
       if (result.success) {
         form.reset();
         toast.success("答案提交成功!");
+        setEditorKey((prev) => prev + 1);
       } else {
         toast.error(result.error?.message || "答案提交失败，请重试!");
       }
     });
   };
+
+  async function generateAIAnswer() {
+    if (!session) {
+      toast.message("请先登录以使用AI生成答案功能!");
+      return;
+    }
+    setIsAISubmitting(true);
+
+    try {
+      const { success, data, error } = await api.ai.getAnswer(
+        questionTitle,
+        questionContent
+      );
+
+      if (!success) {
+        return toast.error(error?.message || "生成AI答案失败,请重试!");
+      }
+      const formattedContent = data?.replace(/<br>/g, " ")?.toString()?.trim();
+      form.setValue("content", formattedContent!, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      await form.trigger("content");
+
+      // MDXEditor 是非受控组件，markdown prop 只在首次挂载时生效
+      // 通过更新 key 强制重新挂载编辑器，使新内容生效
+      setEditorKey((prev) => prev + 1);
+      toast.success("AI答案生成成功!");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "生成AI答案失败,请重试!"
+      );
+    } finally {
+      setIsAISubmitting(false);
+    }
+  }
 
   return (
     <div>
@@ -62,8 +111,10 @@ export default function AnswerForm({ questionId }: { questionId: string }) {
           写下你的答案吧!
         </h4>
         <Button
+          type="button"
           className="btn light-border-2 gap-1.5 rounded-md border px-4 py-2.5 text-primary-500 shadow-none dark:text-primary-500"
           disabled={isAISubmitting}
+          onClick={generateAIAnswer}
         >
           {isAISubmitting ? (
             <>
@@ -97,6 +148,7 @@ export default function AnswerForm({ questionId }: { questionId: string }) {
               <FormItem>
                 <FormControl>
                   <Editor
+                    key={editorKey}
                     value={field.value}
                     editorRef={editorRef}
                     fieldChange={field.onChange}
