@@ -142,3 +142,17 @@ export const AIAnswerSchema = z.object({
     .max(200, { message: "问题太长了，请精简一下" }),
   content: z.string().min(100, { message: "需要内容大于100个字符" }),
 });
+
+export const CreateVoteSchema = z.object({
+  targetId: z.string().min(1, { message: "需要目标ID" }),
+  targetType: z.enum(["question", "answer"], {
+    message: "目标类型必须是'question'或'answer'",
+  }),
+  voteType: z.enum(["upvote", "downvote"], {
+    message: "投票类型必须是'upvote'或'downvote'",
+  }),
+});
+
+export const UpdateVoteCountSchema = CreateVoteSchema.extend({
+  change: z.number().int().min(-1).max(1, { message: "变更必须是1或-1" }),
+});

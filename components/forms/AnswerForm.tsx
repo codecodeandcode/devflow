@@ -21,6 +21,7 @@ import { createAnswer } from "@/lib/actions/answer.action";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { Session } from "next-auth";
+import { useSession } from "next-auth/react";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   // Make sure we turn SSR off
@@ -31,16 +32,15 @@ export default function AnswerForm({
   questionId,
   questionTitle,
   questionContent,
-  session,
 }: {
   questionId: string;
   questionTitle: string;
   questionContent: string;
-  session: Session | null;
 }) {
   const [isAnswering, startAnsweringTransition] = useTransition();
   const [isAISubmitting, setIsAISubmitting] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
+  const session = useSession();
 
   const editorRef = useRef<MDXEditorMethods>(null);
 

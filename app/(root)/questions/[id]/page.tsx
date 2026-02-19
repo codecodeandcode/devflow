@@ -5,6 +5,7 @@ import Preview from "@/components/editor/Preview";
 import AnswerForm from "@/components/forms/AnswerForm";
 import Metric from "@/components/Metric";
 import UserAvatar from "@/components/UserAvatar";
+import Votes from "@/components/votes/votes";
 import ROUTES from "@/constants/routes";
 import { getAnswers } from "@/lib/actions/answer.action";
 import { getQuestion, incrementViews } from "@/lib/actions/question.action";
@@ -58,7 +59,12 @@ export default async function QuestionDetail({ params }: RouterParams) {
             </Link>
           </div>
           <div className="flex justify-end">
-            <p>投票</p>
+            <Votes
+              upvotes={question.upvotes}
+              downvotes={question.downvotes}
+              hasupVoted={true}
+              hasdownVoted={false}
+            />
           </div>
         </div>
         <h2 className="h2-semibold text-dark200_light900 mt-3.5 w-full">
@@ -104,7 +110,6 @@ export default async function QuestionDetail({ params }: RouterParams) {
       </section>
       <section className="my-5">
         <AnswerForm
-          session={session}
           questionId={question._id}
           questionTitle={question.title}
           questionContent={question.content}
