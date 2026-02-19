@@ -10,7 +10,7 @@ interface Props {
   name: string;
   image?: string;
   className?: string;
-  fallbackClassName: string;
+  fallbackClassName?: string;
 }
 
 export default function UserAvatar({

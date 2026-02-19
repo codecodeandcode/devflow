@@ -46,3 +46,8 @@ export const EMPTY_TAGS = {
     link: ROUTES.TAGS,
   },
 };
+
+export const EMPTY_ANSWERS = {
+  title: "没有答案",
+  message: "这个问题还没有答案，快去回答吧！",
+};

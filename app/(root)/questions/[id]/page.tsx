@@ -1,9 +1,11 @@
+import AllAnswers from "@/components/answers/AllAnswers";
 import TagCard from "@/components/cards/TagCard";
 import Preview from "@/components/editor/Preview";
 import AnswerForm from "@/components/forms/AnswerForm";
 import Metric from "@/components/Metric";
 import UserAvatar from "@/components/UserAvatar";
 import ROUTES from "@/constants/routes";
+import { getAnswers } from "@/lib/actions/answer.action";
 import { getQuestion, incrementViews } from "@/lib/actions/question.action";
 import { formatNumber, getTimeStamp } from "@/lib/utils";
 import { RouterParams } from "@/types/global";
@@ -15,7 +17,20 @@ export default async function QuestionDetail({ params }: RouterParams) {
   const { id } = await params;
 
   const { success, data: question } = await getQuestion({ questionId: id });
+
   if (!success || !question) return redirect("/404");
+
+  const {
+    success: areAnswersLoaded,
+    data: answersResult,
+    error: answersError,
+  } = await getAnswers({
+    questionId: id,
+    page: 1,
+    pageSize: 10,
+    filter: "latest",
+  });
+
   const { author, createdAt, answers, views, tags } = question;
 
   after(async () => {
@@ -77,9 +92,17 @@ export default async function QuestionDetail({ params }: RouterParams) {
           <TagCard key={tag._id} _id={tag._id} compact name={tag.name} />
         ))}
       </div>
-      <div className="my-5">
+      <section className="my-5">
+        <AllAnswers
+          data={answersResult?.answers}
+          error={answersError}
+          success={areAnswersLoaded}
+          totalAnswers={answersResult?.totalAnswers || 0}
+        />
+      </section>
+      <section className="my-5">
         <AnswerForm questionId={question._id} />
-      </div>
+      </section>
     </>
   );
 }

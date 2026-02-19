@@ -64,3 +64,10 @@ export interface PaginationSearchParams {
   filter?: string;
   sort?: string;
 }
+
+interface AnswerDB {
+  _id: string;
+  author: Author;
+  content: string;
+  createdAt: Date;
+}

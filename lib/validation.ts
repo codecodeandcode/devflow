@@ -130,3 +130,7 @@ export const AnswerSchema = z.object({
 export const CreateAnswerSchema = AnswerSchema.extend({
   questionId: z.string().min(1, { message: "需要问题ID" }),
 });
+
+export const GetAnswerSchema = PaginatedSearchParamsSchema.extend({
+  questionId: z.string().min(1, { message: "需要问题ID" }),
+});
