@@ -14,6 +14,7 @@ import { handleError } from "../handlers/error";
 import { Tag } from "@/database";
 import { QueryFilter } from "mongoose";
 import Question from "@/database/question.model";
+import { GetTagQuestionsParams } from "@/types/action";
 
 export async function getTags(
   params: PaginationSearchParams
@@ -76,9 +77,9 @@ export async function getTags(
   }
 }
 
-export async function getTagQuestions({
-  params,
-}: GetTagQuestionsParams): Promise<
+export async function getTagQuestions(
+  params: GetTagQuestionsParams
+): Promise<
   ActionRespone<{ tag: Tags; questions: IQuestion[]; isNext: boolean }>
 > {
   const validationResult = await action({

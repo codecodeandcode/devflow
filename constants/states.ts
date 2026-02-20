@@ -51,3 +51,12 @@ export const EMPTY_ANSWERS = {
   title: "没有答案",
   message: "这个问题还没有答案，快去回答吧！",
 };
+
+export const EMPTY_USERS = {
+  title: "没有用户",
+  message: "用户数据库是空的，快去注册吧！",
+  button: {
+    text: "去注册",
+    link: ROUTES.SIGN_IN,
+  },
+};

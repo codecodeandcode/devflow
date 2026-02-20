@@ -70,4 +70,18 @@ interface AnswerDB {
   author: Author;
   content: string;
   createdAt: Date;
+  upvotes: number;
+  downvotes: number;
+}
+
+interface UserDB {
+  _id: string;
+  name: string;
+  username: string;
+  email: string;
+  image?: string;
+  bio?: string;
+  location?: string;
+  portfolio?: string;
+  reputation?: number;
 }

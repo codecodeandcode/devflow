@@ -1,17 +1,25 @@
 import { AnswerDB } from "@/types/global";
-import React from "react";
+import React, { Suspense } from "react";
 import UserAvatar from "../UserAvatar";
 import ROUTES from "@/constants/routes";
 import Link from "next/link";
 import { getTimeStamp } from "@/lib/utils";
 import Preview from "../editor/Preview";
+import Votes from "../votes/votes";
+import { hasVoted } from "@/lib/actions/vote.action";
 
 export default function AnswerCard({
   _id,
   author,
   content,
   createdAt,
+  upvotes,
+  downvotes,
 }: AnswerDB) {
+  const hasVotedPromise = hasVoted({
+    targetId: _id,
+    targetType: "answer",
+  });
   return (
     <article className="light-border! border-b py-10">
       <span className="hash-span" id={JSON.stringify(_id)} />
@@ -37,7 +45,17 @@ export default function AnswerCard({
             </p>
           </div>
         </div>
-        <div className="flex justify-end">Votes</div>
+        <div className="flex justify-end">
+          <Suspense fallback={<div>Loading...</div>}>
+            <Votes
+              upvotes={upvotes}
+              targetType="answer"
+              targetId={_id}
+              downvotes={downvotes}
+              hasVotedPromise={hasVotedPromise}
+            />
+          </Suspense>
+        </div>
       </div>
       <Preview content={content} />
     </article>

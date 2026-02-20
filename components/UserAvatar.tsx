@@ -28,15 +28,14 @@ export default function UserAvatar({
     .slice(0, 2);
   return (
     <Link href={ROUTES.PROFILE(id)}>
-      <Avatar className={className}>
+      <Avatar className={cn("relative", className)}>
         {image ? (
           <Image
             quality={100}
             src={image}
             alt={name}
             className="object-cover"
-            width={36}
-            height={36}
+            fill
           />
         ) : (
           <AvatarFallback
