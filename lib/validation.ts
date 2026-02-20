@@ -154,5 +154,12 @@ export const CreateVoteSchema = z.object({
 });
 
 export const UpdateVoteCountSchema = CreateVoteSchema.extend({
-  change: z.number().int().min(-1).max(1, { message: "变更必须是1或-1" }),
+  change: z.union([z.literal(-1), z.literal(1)], {
+    message: "变更必须是1或-1",
+  }),
+});
+
+export const HasVotedSchema = CreateVoteSchema.pick({
+  targetId: true,
+  targetType: true,
 });

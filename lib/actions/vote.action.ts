@@ -1,12 +1,19 @@
 "use server";
 
-import { CreateVoteParams, UpdateVoteCountParams } from "@/types/action";
-import { CreateVoteSchema, UpdateVoteCountSchema } from "../validation";
+import {
+  CreateVoteParams,
+  HasVotedParams,
+  HasVotedResponse,
+  UpdateVoteCountParams,
+} from "@/types/action";
+import { CreateVoteSchema, HasVotedSchema } from "../validation";
 import action from "../handlers/action";
 import { handleError } from "../handlers/error";
-import { ActionRespone } from "@/types/global";
+import { ActionRespone, ErrorResponse } from "@/types/global";
 import mongoose, { ClientSession } from "mongoose";
 import { Answer, Question, Vote } from "@/database";
+import ROUTES from "@/constants/routes";
+import { revalidatePath } from "next/cache";
 
 export async function createVote(params: CreateVoteParams) {
   const validationResult = await action({
@@ -30,11 +37,12 @@ export async function createVote(params: CreateVoteParams) {
     const existingVote = await Vote.findOne({
       author: userId,
       actionId: targetId,
-      actionType: targetType,
+      type: targetType,
     }).session(session);
 
     if (existingVote) {
       if (existingVote.voteType === voteType) {
+        // 取消投票
         await Vote.deleteOne({
           _id: existingVote._id,
         }).session(session);
@@ -43,6 +51,7 @@ export async function createVote(params: CreateVoteParams) {
           session
         );
       } else {
+        // 切换投票类型
         await Vote.findByIdAndUpdate(
           existingVote._id,
           { voteType },
@@ -52,18 +61,31 @@ export async function createVote(params: CreateVoteParams) {
           { targetId, targetType, voteType, change: 1 },
           session
         );
+        await updateVoteCount(
+          {
+            targetId,
+            targetType,
+            voteType: existingVote.voteType,
+            change: -1,
+          },
+          session
+        );
       }
     } else {
-      await Vote.create([{ targetId, targetType, voteType, change: 1 }], {
-        session,
-      });
+      // 新投票
+      await Vote.create(
+        [{ author: userId, actionId: targetId, type: targetType, voteType }],
+        {
+          session,
+        }
+      );
       await updateVoteCount(
         { targetId, targetType, voteType, change: 1 },
         session
       );
     }
     await session.commitTransaction();
-    session.endSession();
+    revalidatePath(ROUTES.QUESTION(targetId));
     return {
       success: true,
     };
@@ -76,34 +98,66 @@ export async function createVote(params: CreateVoteParams) {
 }
 
 async function updateVoteCount(
-  params: UpdateVoteCountParams,
-  sesssion?: ClientSession
+  { targetId, targetType, voteType, change }: UpdateVoteCountParams,
+  session?: ClientSession
 ) {
-  const validationResult = await action({
-    params,
-    schema: UpdateVoteCountSchema,
-  });
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ActionRespone;
-  }
-
-  const { targetId, targetType, voteType, change } = validationResult.params!;
   const Model = targetType === "question" ? Question : Answer;
   const voteField = voteType === "upvote" ? "upvotes" : "downvotes";
 
+  const result = await Model.findByIdAndUpdate(
+    targetId,
+    { $inc: { [voteField]: change } },
+    { new: true, session }
+  );
+
+  if (!result) {
+    throw new Error(`Failed to update vote count: ${targetType} not found`);
+  }
+
+  return result;
+}
+
+export async function hasVoted(
+  params: HasVotedParams
+): Promise<ActionRespone<HasVotedResponse>> {
+  const validationResult = await action({
+    params,
+    authorize: true,
+    schema: HasVotedSchema,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { targetId, targetType } = validationResult.params!;
+  const userId = validationResult.session?.user?.id;
+
   try {
-    const result = await Model.findByIdAndUpdate(
-      targetId,
-      { $inc: { [voteField]: change } },
-      { new: true, session: sesssion }
-    );
-    if (!result) {
-      return handleError(new Error(`${targetType} not found`)) as ActionRespone;
+    const vote = await Vote.findOne({
+      author: userId,
+      actionId: targetId,
+      type: targetType,
+    });
+
+    if (!vote) {
+      return {
+        success: true,
+        data: {
+          hasUpvoted: false,
+          hasDownvoted: false,
+        },
+      };
     }
+
     return {
       success: true,
+      data: {
+        hasUpvoted: vote.voteType === "upvote",
+        hasDownvoted: vote.voteType === "downvote",
+      },
     };
   } catch (error) {
-    return handleError(error) as ActionRespone;
+    return handleError(error) as ErrorResponse;
   }
 }
