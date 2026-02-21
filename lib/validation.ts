@@ -167,3 +167,7 @@ export const HasVotedSchema = CreateVoteSchema.pick({
 export const CollectionBaseSchema = z.object({
   questionId: z.string().min(1, { message: "需要问题ID" }),
 });
+
+export const getUserSchema = z.object({
+  userId: z.string().min(1, { message: "需要用户ID" }),
+});

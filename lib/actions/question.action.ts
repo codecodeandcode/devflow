@@ -24,6 +24,7 @@ import {
 } from "@/types/action";
 import { revalidatePath } from "next/cache";
 import ROUTES from "@/constants/routes";
+import dbConnet from "../mongoose";
 
 export async function createQuestion(
   params: CreateQuestionParams
@@ -332,5 +333,21 @@ export async function incrementViews(
     } catch (error) {
       return handleError(error) as ErrorResponse;
     }
+  }
+}
+
+export async function getHotQuestions(): Promise<ActionRespone<IQuestion[]>> {
+  try {
+    await dbConnet();
+
+    const questions = await Question.find()
+      .sort({ views: -1, upvotes: -1 })
+      .limit(5);
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(questions)),
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
   }
 }

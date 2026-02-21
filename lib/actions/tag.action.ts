@@ -15,6 +15,7 @@ import { Tag } from "@/database";
 import { QueryFilter } from "mongoose";
 import Question from "@/database/question.model";
 import { GetTagQuestionsParams } from "@/types/action";
+import dbConnet from "../mongoose";
 
 export async function getTags(
   params: PaginationSearchParams
@@ -124,6 +125,19 @@ export async function getTagQuestions(
         questions: JSON.parse(JSON.stringify(questions)),
         isNext,
       },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getTopTags(): Promise<ActionRespone<{ tags: Tags[] }>> {
+  try {
+    dbConnet();
+    const tags = await Tag.find().sort({ question: -1 }).limit(5);
+    return {
+      success: true,
+      data: { tags: JSON.parse(JSON.stringify(tags)) },
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;

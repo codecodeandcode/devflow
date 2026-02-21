@@ -1,57 +1,23 @@
 import TagCard from "@/components/cards/TagCard";
+import DataRenderer from "@/components/DataRenderer";
 import ROUTES from "@/constants/routes";
+import { getHotQuestions } from "@/lib/actions/question.action";
+import { getTopTags } from "@/lib/actions/tag.action";
 import Image from "next/image";
 import Link from "next/link";
 import { title } from "process";
 import React from "react";
+import { toast } from "sonner";
 
-const hotQuestions = [
-  {
-    _id: 1,
-    title: "如何在React中使用Hooks?",
-  },
-  {
-    _id: 2,
-    title: "JavaScript中的闭包是什么?",
-  },
-  {
-    _id: 3,
-    title: "CSS Flexbox布局的基本概念?",
-  },
-  {
-    _id: 4,
-    title: "如何优化网页的加载速度?",
-  },
-  {
-    _id: 5,
-    title: "什么是响应式设计?",
-  },
-];
+export default async function RightSideBar() {
+  const [
+    { success, data: hotQuestions, error },
+    { success: tagSuccess, data: tags, error: tagError },
+  ] = await Promise.all([getHotQuestions(), getTopTags()]);
 
-const popularTags = [
-  {
-    _id: 1,
-    name: ["React"],
-    questions: 1200,
-  },
-  {
-    _id: 2,
-    name: ["JavaScript"],
-    questions: 1500,
-  },
-  {
-    _id: 3,
-    name: ["CSS"],
-    questions: 1800,
-  },
-  {
-    _id: 4,
-    name: ["HTML"],
-    questions: 1100,
-  },
-];
-
-export default function RightSideBar() {
+  if (!tags || !hotQuestions) {
+    toast.error("加载侧边栏数据失败");
+  }
   return (
     <section
       className="pt-36 custom-scrollbar
@@ -61,42 +27,61 @@ export default function RightSideBar() {
     >
       <div>
         <h3 className="h3-bold text-dark200_light900">热门问题</h3>
-      </div>
-      <div className="mt-7 flex w-full flex-col gap-[30px]">
-        {hotQuestions.map(({ _id, title }) => {
-          return (
-            <Link
-              key={_id}
-              href={ROUTES.PROFILE(_id)}
-              className="flex
-          cursor-pointer items-center justify-between gap-7"
-            >
-              <p className="body-medium text-dark500_light700">{title}</p>
-              <Image
-                src={"/icons/chevron-right.svg"}
-                width={20}
-                height={20}
-                alt="chevron"
-                className="invert-colors"
-              ></Image>
-            </Link>
-          );
-        })}
+        <DataRenderer
+          success={success}
+          error={error}
+          data={hotQuestions}
+          empty={{
+            title: "暂时没有问题",
+            message: "快去提问吧！",
+          }}
+          render={(data) => (
+            <div className="mt-7 flex flex-col gap-[30px]">
+              {data.map(({ _id, title }) => (
+                <Link
+                  key={_id}
+                  href={ROUTES.QUESTION(_id)}
+                  className="flex cursor-pointer items-center justify-between gap-7"
+                >
+                  <p className="body-medium text-dark500_light700">{title}</p>
+                  <Image
+                    src={"/icons/chevron-right.svg"}
+                    width={20}
+                    height={20}
+                    alt="chevron"
+                    className="invert-colors"
+                  ></Image>
+                </Link>
+              ))}
+            </div>
+          )}
+        />
       </div>
       <div className="mt-16">
         <h3 className="h3-bold text-dark200_light900">热门标签</h3>
-        <div className="mt-7 flex flex-col gap-4">
-          {popularTags.map(({ _id, name, questions }) => (
-            <TagCard
-              key={_id}
-              _id={_id}
-              name={name}
-              questions={questions}
-              compact
-              showCount
-            />
-          ))}
-        </div>
+        <DataRenderer
+          success={tagSuccess}
+          error={tagError}
+          data={tags?.tags}
+          empty={{
+            title: "暂时没有标签",
+            message: "快去创建标签吧！",
+          }}
+          render={(tags) => (
+            <div className="mt-7 flex flex-col gap-[30px]">
+              {tags.map(({ _id, name, questions }) => (
+                <TagCard
+                  key={_id}
+                  _id={_id}
+                  name={name}
+                  questions={questions}
+                  showCount
+                  compact
+                />
+              ))}
+            </div>
+          )}
+        />
       </div>
     </section>
   );

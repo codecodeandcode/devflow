@@ -15,6 +15,7 @@ interface QuestionCardProps {
 interface Tags {
   _id: string;
   name: string;
+  questions?: number;
 }
 
 interface Author {
@@ -84,10 +85,17 @@ interface UserDB {
   location?: string;
   portfolio?: string;
   reputation?: number;
+  createdAt: Date;
 }
 
 interface CollecitonDB {
   _id: string;
   author: Author;
   question: Question;
+}
+
+interface BadgeCount {
+  GOLD: number;
+  SILVER: number;
+  BRONZE: number;
 }
