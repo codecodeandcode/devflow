@@ -212,7 +212,6 @@ export async function getQuestion(
   const validationResult = await action({
     params,
     schema: GetQuestionSchema,
-    authorize: true,
   });
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;
@@ -268,7 +267,7 @@ export async function getQuestions(
     case "newest":
       sortCriteria = { createdAt: -1 };
       break;
-    case "unanswsered":
+    case "unanswered":
       filterQuery.answers = 0;
       sortCriteria = { createdAt: -1 };
       break;

@@ -4,10 +4,12 @@ import TagCard from "@/components/cards/TagCard";
 import Preview from "@/components/editor/Preview";
 import AnswerForm from "@/components/forms/AnswerForm";
 import Metric from "@/components/Metric";
+import SaveQuestion from "@/components/questions/SaveQuestion";
 import UserAvatar from "@/components/UserAvatar";
 import Votes from "@/components/votes/votes";
 import ROUTES from "@/constants/routes";
 import { getAnswers } from "@/lib/actions/answer.action";
+import { hasSavedQuestion } from "@/lib/actions/collection.action";
 import { getQuestion, incrementViews } from "@/lib/actions/question.action";
 import { hasVoted } from "@/lib/actions/vote.action";
 import { formatNumber, getTimeStamp } from "@/lib/utils";
@@ -17,8 +19,13 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { Suspense } from "react";
 
-export default async function QuestionDetail({ params }: RouterParams) {
+export default async function QuestionDetail({
+  params,
+  searchParams,
+}: RouterParams) {
   const { id } = await params;
+
+  const { page, pageSize, filter } = await searchParams;
 
   const { success, data: question } = await getQuestion({ questionId: id });
 
@@ -30,14 +37,18 @@ export default async function QuestionDetail({ params }: RouterParams) {
     error: answersError,
   } = await getAnswers({
     questionId: id,
-    page: 1,
-    pageSize: 10,
-    filter: "latest",
+    page: Number(page) || 1,
+    pageSize: Number(pageSize) || 10,
+    filter: filter || "latest",
   });
 
   const hasVotedPromise = hasVoted({
     targetId: question._id,
     targetType: "question",
+  });
+
+  const hasCollectedPromise = hasSavedQuestion({
+    questionId: question._id,
   });
 
   const { author, createdAt, answers, views, tags } = question;
@@ -64,7 +75,7 @@ export default async function QuestionDetail({ params }: RouterParams) {
               </p>
             </Link>
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-end items-center gap-4">
             <Suspense fallback={<div>Loading...</div>}>
               <Votes
                 upvotes={question.upvotes}
@@ -72,6 +83,12 @@ export default async function QuestionDetail({ params }: RouterParams) {
                 targetId={question._id}
                 downvotes={question.downvotes}
                 hasVotedPromise={hasVotedPromise}
+              />
+            </Suspense>
+            <Suspense fallback={<div>Loading...</div>}>
+              <SaveQuestion
+                questionId={question._id}
+                hasCollectedPromise={hasCollectedPromise}
               />
             </Suspense>
           </div>

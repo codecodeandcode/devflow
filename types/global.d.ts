@@ -85,3 +85,9 @@ interface UserDB {
   portfolio?: string;
   reputation?: number;
 }
+
+interface CollecitonDB {
+  _id: string;
+  author: Author;
+  question: Question;
+}

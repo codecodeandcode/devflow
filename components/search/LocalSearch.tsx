@@ -53,7 +53,7 @@ export default function LocalSearch({
 
   return (
     <div
-      className={`background-light800_darkgradient flex min-h-[56px]
+      className={`background-light800_darkgradient flex min-h-[56px] sm:w-full
     grow items-center gap-4 rounded-[10px] px-4 ${otherClass}`}
     >
       {iconPostion === "left" && (

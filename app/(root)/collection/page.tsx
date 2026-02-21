@@ -1,5 +1,58 @@
-import React from "react";
+import QuestionCard from "@/components/cards/QuestionCard";
+import DataRenderer from "@/components/DataRenderer";
+import CommonFilter from "@/components/filter/CommonFilter";
+import LocalSearch from "@/components/search/LocalSearch";
+import { CollectionFilters } from "@/constants/filters";
+import ROUTES from "@/constants/routes";
+import { EMPTY_QUESTION } from "@/constants/states";
+import { getSavedCollections } from "@/lib/actions/collection.action";
+interface SearchParams {
+  searchParams: Promise<{ [key: string]: string }>;
+}
 
-export default function Collection() {
-  return <div>Collection</div>;
+export default async function Collections({ searchParams }: SearchParams) {
+  const { page, pageSize, query, filter } = await searchParams;
+
+  const { success, data, error } = await getSavedCollections({
+    page: Number(page) || 1,
+    pageSize: Number(pageSize) || 10,
+    query: query || "",
+    filter: filter || "",
+  });
+
+  const { collection, isNext } = data || {};
+
+  return (
+    <>
+      <h1 className="h1-bold text-dark100_light900">我的收藏</h1>
+      <section className="mt-11 flex jusitfy-between gap-5 max-sm:flex-col sm:items-center">
+        <LocalSearch
+          imgSrc="/icons/search.svg"
+          placeholder="搜索问题..."
+          otherClass="flex-1"
+          route={ROUTES.COLLECTION}
+        />
+        <CommonFilter
+          filters={CollectionFilters}
+          otherClasses="min-h-[56px] sm:min-w-[170px]"
+        />
+      </section>
+      <DataRenderer
+        success={success}
+        error={error}
+        data={collection}
+        empty={EMPTY_QUESTION}
+        render={(collections) => (
+          <div className="mt-10 flex w-full flex-col gap-6">
+            {collections.map((collection) => (
+              <QuestionCard
+                key={collection._id}
+                question={collection.question}
+              />
+            ))}
+          </div>
+        )}
+      />
+    </>
+  );
 }

@@ -15,6 +15,9 @@ interface RemoveUrlQueryParams {
 export function formUrlQuery({ params, key, value }: UrlQueryParams) {
   const currentUrl = qs.parse(params);
   currentUrl[key] = value;
+  if (key === "query" && value?.length <= 1) {
+    delete currentUrl[key];
+  }
 
   return qs.stringifyUrl({
     url: window.location.pathname,

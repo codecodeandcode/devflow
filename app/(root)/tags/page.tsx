@@ -1,6 +1,8 @@
 import TagCard from "@/components/cards/TagCard";
 import DataRenderer from "@/components/DataRenderer";
+import CommonFilter from "@/components/filter/CommonFilter";
 import LocalSearch from "@/components/search/LocalSearch";
+import { TagFilters } from "@/constants/filters";
 import ROUTES from "@/constants/routes";
 import { EMPTY_TAGS } from "@/constants/states";
 import { getTags } from "@/lib/actions/tag.action";
@@ -19,13 +21,17 @@ export default async function Tags({ searchParams }: RouterParams) {
   return (
     <>
       <h1 className="h1-bold text-dark100_light900 text-3xl">标签</h1>
-      <section className="mt-11">
+      <section className="mt-11  sm:flex justify-between gap-5 max-sm:flex-col sm:items-center">
         <LocalSearch
           route={ROUTES.TAGS}
           imgSrc="/icons/search.svg"
           placeholder="搜索标签"
           otherClass="flex-1"
           iconPostion="left"
+        />
+        <CommonFilter
+          filters={TagFilters}
+          otherClasses="min-h-[56px] sm:min-w-[170px]"
         />
       </section>
       <DataRenderer
