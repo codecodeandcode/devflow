@@ -38,7 +38,7 @@ export default async function QuestionDetail({
   } = await getAnswers({
     questionId: id,
     page: Number(page) || 1,
-    pageSize: Number(pageSize) || 10,
+    pageSize: Number(pageSize) || 2,
     filter: filter || "latest",
   });
 
@@ -128,6 +128,8 @@ export default async function QuestionDetail({
       </div>
       <section className="my-5">
         <AllAnswers
+          isNext={answersResult?.isNext || false}
+          page={Number(page) || 1}
           data={answersResult?.answers}
           error={answersError}
           success={areAnswersLoaded}

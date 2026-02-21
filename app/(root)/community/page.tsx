@@ -1,6 +1,7 @@
 import UserCard from "@/components/cards/UserCard";
 import DataRenderer from "@/components/DataRenderer";
 import CommonFilter from "@/components/filter/CommonFilter";
+import Pagination from "@/components/Pagination";
 import LocalSearch from "@/components/search/LocalSearch";
 import { UserFilters } from "@/constants/filters";
 import ROUTES from "@/constants/routes";
@@ -19,7 +20,7 @@ export default async function Community({ searchParams }: RouterParams) {
     filter: filter || "newest",
   });
 
-  const { users } = data || {};
+  const { users, isNext } = data || {};
   return (
     <div>
       <h1 className="h1-bold text-dark100_light900">所有用户</h1>
@@ -50,6 +51,9 @@ export default async function Community({ searchParams }: RouterParams) {
           );
         }}
       />
+      {users && users.length > 0 && (
+        <Pagination page={page} isNext={isNext || false} />
+      )}
     </div>
   );
 }

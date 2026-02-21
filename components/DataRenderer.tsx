@@ -113,5 +113,5 @@ export default function DataRenderer<T>({
     );
   }
 
-  return <div>{render(data)}</div>;
+  return <div>{data?.length && render(data)}</div>;
 }

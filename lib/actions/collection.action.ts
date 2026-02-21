@@ -168,10 +168,20 @@ export async function getSavedCollections(
       });
     }
 
-    const [totalCount] = await Collection.aggregate([
+    const countResult = await Collection.aggregate([
       ...pipeline,
       { $count: "count" },
     ]);
+    const totalCount = countResult[0]?.count || 0;
+    if (!totalCount) {
+      return {
+        success: true,
+        data: {
+          collection: [],
+          isNext: false,
+        },
+      };
+    }
     pipeline.push({ $sort: sortCriteria }, { $skip: skip }, { $limit: limit });
     pipeline.push({
       $project: {
@@ -184,7 +194,7 @@ export async function getSavedCollections(
       success: true,
       data: {
         collection: JSON.parse(JSON.stringify(questions)),
-        isNext: questions.length + skip < totalCount.count,
+        isNext: questions.length + skip < totalCount,
       },
     };
   } catch (error) {

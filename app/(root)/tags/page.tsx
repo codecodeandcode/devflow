@@ -1,6 +1,7 @@
 import TagCard from "@/components/cards/TagCard";
 import DataRenderer from "@/components/DataRenderer";
 import CommonFilter from "@/components/filter/CommonFilter";
+import Pagination from "@/components/Pagination";
 import LocalSearch from "@/components/search/LocalSearch";
 import { TagFilters } from "@/constants/filters";
 import ROUTES from "@/constants/routes";
@@ -16,7 +17,7 @@ export default async function Tags({ searchParams }: RouterParams) {
     filter: filter || "popular",
     query: query || "",
   });
-  const { tags } = data || {};
+  const { tags, isNext } = data || {};
 
   return (
     <>
@@ -47,6 +48,9 @@ export default async function Tags({ searchParams }: RouterParams) {
           </div>
         )}
       />
+      {tags && tags.length > 0 && (
+        <Pagination page={page} isNext={isNext || false} />
+      )}
     </>
   );
 }

@@ -2,14 +2,13 @@ import QuestionCard from "@/components/cards/QuestionCard";
 import DataRenderer from "@/components/DataRenderer";
 import CommonFilter from "@/components/filter/CommonFilter";
 import HomeFilter from "@/components/filter/HomeFilter";
+import Pagination from "@/components/Pagination";
 import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import { HomePageFilters } from "@/constants/filters";
 import ROUTES from "@/constants/routes";
 import { EMPTY_QUESTION } from "@/constants/states";
 import { getQuestions } from "@/lib/actions/question.action";
-import { handleError } from "@/lib/handlers/error";
-import { ValidationError } from "@/lib/http-errors";
 import Link from "next/link";
 
 interface SearchParams {
@@ -69,6 +68,8 @@ export default async function Home({ searchParams }: SearchParams) {
           </div>
         )}
       />
+
+      <Pagination page={page} isNext={isNext} />
     </>
   );
 }
