@@ -171,3 +171,15 @@ export const CollectionBaseSchema = z.object({
 export const getUserSchema = z.object({
   userId: z.string().min(1, { message: "需要用户ID" }),
 });
+
+export const GetUserQuestionsSchema = PaginatedSearchParamsSchema.extend({
+  userId: z.string().min(1, { message: "需要用户ID" }),
+});
+
+export const GetUserAnswersSchema = PaginatedSearchParamsSchema.extend({
+  userId: z.string().min(1, { message: "需要用户ID" }),
+});
+
+export const GetUserTagsSchema = z.object({
+  userId: z.string().min(1, { message: "需要用户ID" }),
+});
