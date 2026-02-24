@@ -14,11 +14,7 @@ export const sidebarLinks = [
     route: "/collection",
     label: "收藏",
   },
-  {
-    imgURL: "/icons/suitcase.svg",
-    route: "/jobs",
-    label: "找工作",
-  },
+
   {
     imgURL: "/icons/tag.svg",
     route: "/tags",

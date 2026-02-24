@@ -23,14 +23,17 @@ export default function NavLinks({
         const isActive =
           (pathName.includes(item.label) && item.route.length > 1) ||
           item.route === pathName;
+
         if (item.route === "/profile") {
-          if (userId) item.route = `${item.route}/${userId}`;
-          else return null;
+          if (!userId) return null;
         }
+
+        const route =
+          item.route === "/profile" ? `${item.route}/${userId}` : item.route;
 
         const LinkComponent = (
           <Link
-            href={item.route}
+            href={route}
             key={item.label}
             className={cn(
               isActive
