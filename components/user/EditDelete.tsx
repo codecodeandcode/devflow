@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { deleteAnswer } from "@/lib/actions/answer.action";
 import { deleteQuestion } from "@/lib/actions/question.action";
 import { Button } from "@mdxeditor/editor";
 import Image from "next/image";
@@ -34,7 +35,8 @@ export default function EditDelete({ type, itemId }: EditDeleteProps) {
       await deleteQuestion({ questionId: itemId });
       toast.success("问题已删除");
     } else {
-      // await deleteAnswer({ answerId: itemId });
+      // await deleteAn
+      await deleteAnswer({ answerId: itemId });
       toast.success("回答已删除");
     }
   }
