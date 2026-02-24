@@ -28,6 +28,36 @@ const Editor = dynamic(() => import("@/components/editor"), {
   ssr: false,
 });
 
+/**
+ * 将 AI 返回的 markdown 中不被 MDXEditor 支持的代码块语言标识符
+ * 规范化为编辑器 codeMirrorPlugin 已注册的短标识符。
+ */
+const LANG_ALIAS_MAP: Record<string, string> = {
+  javascript: "js",
+  typescript: "ts",
+  python: "py",
+  shell: "bash",
+  zsh: "bash",
+  dockerfile: "bash",
+  yml: "yaml",
+  markdown: "md",
+  "c++": "cpp",
+  "c#": "csharp",
+  rb: "ruby",
+  rs: "rust",
+  golang: "go",
+  tsx: "tsx",
+  jsx: "jsx",
+};
+
+function sanitizeMarkdownCodeBlocks(markdown: string): string {
+  return markdown.replace(/```(\w[\w+#.-]*)\s*\n/g, (_match, lang: string) => {
+    const lower = lang.toLowerCase();
+    const mapped = LANG_ALIAS_MAP[lower] ?? lower;
+    return "```" + mapped + "\n";
+  });
+}
+
 export default function AnswerForm({
   questionId,
   questionTitle,
@@ -84,7 +114,9 @@ export default function AnswerForm({
       if (!success) {
         return toast.error(error?.message || "生成AI答案失败,请重试!");
       }
-      const formattedContent = data?.replace(/<br>/g, " ")?.toString()?.trim();
+      const formattedContent = sanitizeMarkdownCodeBlocks(
+        data?.replace(/<br>/g, " ")?.toString()?.trim() ?? ""
+      );
       form.setValue("content", formattedContent!, {
         shouldValidate: true,
         shouldDirty: true,
