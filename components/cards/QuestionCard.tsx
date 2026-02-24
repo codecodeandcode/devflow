@@ -6,9 +6,11 @@ import TagCard from "./TagCard";
 import Metric from "../Metric";
 import { QuestionCardProps, Tags } from "@/types/global";
 import { date } from "zod";
+import EditDelete from "../user/EditDelete";
 
 interface Props {
   question: QuestionCardProps;
+  showActionBtns?: boolean;
 }
 
 export default function QuestionCard({
@@ -23,27 +25,31 @@ export default function QuestionCard({
     answers,
     views,
   },
+  showActionBtns = false,
 }: Props) {
   return (
     <div className="card-wrapper rounded-[10px] p-9 sm:px-11">
       <div
-        className="flex flex-col-reverse items-start justify-between 
+        className="flex flex-col-reverse items-center justify-between 
         gap-5 sm:flex-row"
       >
-        <span
-          className="sm:hidden flex line-clamp-1 subtle-regular
+        <div className="flex-1">
+          <span
+            className="sm:hidden flex line-clamp-1 subtle-regular
           text-dark400_light700"
-        >
-          {getTimeStamp(createdAt)}
-        </span>
-        <Link href={ROUTES.QUESTION(String(_id))}>
-          <h3
-            className="sm:h3-semibold base-semibold text-dark200_light900
-            line-clamp-1 flex-1"
           >
-            {title}
-          </h3>
-        </Link>
+            {getTimeStamp(createdAt)}
+          </span>
+          <Link href={ROUTES.QUESTION(String(_id))}>
+            <h3
+              className="sm:h3-semibold base-semibold text-dark200_light900
+            line-clamp-1 flex-1"
+            >
+              {title}
+            </h3>
+          </Link>
+        </div>
+        {showActionBtns && <EditDelete type="Question" itemId={_id} />}
       </div>
       <div className="mt-3.5 flex w-full flex-wrap">
         {tags.map((tag: Tags) => {

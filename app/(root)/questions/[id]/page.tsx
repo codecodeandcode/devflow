@@ -67,7 +67,7 @@ export default async function QuestionDetail({
               name={author.name}
               className="size-[22px]"
               fallbackClassName="text-[10px]"
-              image="/default-avatar.jpg"
+              image={author.image}
             />
             <Link href={ROUTES.PROFILE(author._id)}>
               <p className="paragraph-semibold text-dark300_light700">

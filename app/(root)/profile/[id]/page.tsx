@@ -5,6 +5,7 @@ import {
   getUser,
   getUserQuestions,
   getUsersAnswers,
+  getUserStats,
   getUserTags,
 } from "@/lib/actions/user.action";
 import { RouterParams } from "@/types/global";
@@ -90,6 +91,22 @@ export default async function Profile({ params, searchParams }: RouterParams) {
 
   const { tags } = userTagsData!;
 
+  const {
+    success: getUserSuccess,
+    data: getUserData,
+    error: getUserError,
+  } = await getUserStats({ userId: id });
+
+  if (getUserError || !getUserData || !getUserSuccess) {
+    toast.error(getUserError?.message || "获取用户信息失败");
+  }
+
+  const {
+    totalQuestions: getUserTotalQuestions,
+    totalAnswers: getUserTotalAnswers,
+    badges,
+  } = getUserData!;
+
   return (
     <>
       <section className="flex flex-col-reverse items-start justify-between sm:flex-row">
@@ -143,13 +160,9 @@ export default async function Profile({ params, searchParams }: RouterParams) {
         </div>
       </section>
       <Status
-        totalQuestions={totalQuestions}
-        totalAnswers={totalAnswers}
-        badges={{
-          GOLD: 2,
-          SILVER: 5,
-          BRONZE: 10,
-        }}
+        totalQuestions={getUserTotalQuestions}
+        totalAnswers={getUserTotalAnswers}
+        badges={badges}
       />
       <section className="mt-10 flex gap-10">
         <Tabs defaultValue="top-posts" className="flex-[2]">
@@ -173,7 +186,13 @@ export default async function Profile({ params, searchParams }: RouterParams) {
               render={(questions) => (
                 <div className="flex flex-col w-full gap-6">
                   {questions.map((question) => (
-                    <QuestionCard key={question._id} question={question} />
+                    <QuestionCard
+                      key={question._id}
+                      question={question}
+                      showActionBtns={
+                        loggedUser?.user?.id === question.author._id
+                      }
+                    />
                   ))}
                 </div>
               )}
@@ -189,7 +208,7 @@ export default async function Profile({ params, searchParams }: RouterParams) {
               data={answers}
               empty={EMPTY_ANSWERS}
               render={(answers) => (
-                <div className="flex flex-col w-full gap-6">
+                <div className="flex flex-col w-full gap-10">
                   {answers.map((answer) => (
                     <AnswerCard
                       key={answer._id}
@@ -197,6 +216,9 @@ export default async function Profile({ params, searchParams }: RouterParams) {
                       content={answer.content.slice(0, 27)}
                       showReadMore={true}
                       containerClasses="card-wrapper rounded-[10px] px-7 py-9 sm:px-11"
+                      showActionBtns={
+                        loggedUser?.user?.id === answer.author._id
+                      }
                     />
                   ))}
                 </div>

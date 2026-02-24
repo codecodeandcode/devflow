@@ -7,10 +7,12 @@ import { getTimeStamp } from "@/lib/utils";
 import Preview from "../editor/Preview";
 import Votes from "../votes/votes";
 import { hasVoted } from "@/lib/actions/vote.action";
+import EditDelete from "../user/EditDelete";
 
 interface Props extends AnswerDB {
   containerClasses?: string;
   showReadMore?: boolean;
+  showActionBtns?: boolean;
 }
 
 export default function AnswerCard({
@@ -23,6 +25,7 @@ export default function AnswerCard({
   question,
   containerClasses,
   showReadMore = false,
+  showActionBtns = false,
 }: Props) {
   const hasVotedPromise = hasVoted({
     targetId: _id,
@@ -30,9 +33,16 @@ export default function AnswerCard({
   });
   return (
     <article
-      className={`light-border! border-b py-10 ${containerClasses || ""}`}
+      className={`light-border! border-b py-10 relative ${
+        containerClasses || ""
+      } `}
     >
       <span className="hash-span" id={`answer-${_id}`} />
+      {showActionBtns && (
+        <div className="background-light800 flex-center absolute -right-2 -top-5 size-9 rounded-full">
+          <EditDelete type="Answer" itemId={_id} />
+        </div>
+      )}
       <div
         className="mb-5 flex flex-col-reverse justify-between gap-5 sm:flex-row
       sm:items-center sm:gap-2"

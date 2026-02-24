@@ -183,3 +183,31 @@ export const GetUserAnswersSchema = PaginatedSearchParamsSchema.extend({
 export const GetUserTagsSchema = z.object({
   userId: z.string().min(1, { message: "需要用户ID" }),
 });
+
+export const DeleteQuestionSchema = z.object({
+  questionId: z.string().min(1, { message: "需要问题ID" }),
+});
+
+export const CreateInteractionSchema = z.object({
+  action: z.enum(
+    [
+      "upvote",
+      "downvote",
+      "post",
+      "view",
+      "bookmark",
+      "edit",
+      "delete",
+      "search",
+    ],
+    {
+      message:
+        "动作必须是'upvote', 'downvote', 'post', 'view', 'bookmark', 'edit', 'delete'或'search'",
+    }
+  ),
+  actionId: z.string().min(1, { message: "需要动作ID" }),
+  authorId: z.string().min(1, { message: "需要作者ID" }),
+  actionTarget: z.enum(["question", "answer"], {
+    message: "动作目标必须是'question'或'answer'",
+  }),
+});
