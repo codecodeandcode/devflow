@@ -80,6 +80,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account?.type === "credentials") return true;
       if (!account || !user) return false;
 
+      const googleUsername =
+        user.name?.toLowerCase().replace(/[^a-z0-9_]/g, "") || "";
+      const emailPrefix = user.email?.split("@")[0]?.toLowerCase() || "";
+
       const userInfo = {
         name: user.name!,
         email: user.email!,
@@ -87,7 +91,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         username:
           account.provider === "github"
             ? (profile?.login as string)
-            : (user.name?.toLowerCase() as string),
+            : googleUsername.length >= 3
+            ? googleUsername
+            : emailPrefix,
       };
       const { success } = (await api.auth.oAuthSignIn({
         user: userInfo,
