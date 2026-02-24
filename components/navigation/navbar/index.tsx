@@ -36,7 +36,7 @@ export default async function NavBar() {
           <UserAvatar
             id={session.user.id}
             name={session.user.name!}
-            image={session.user?.image}
+            image={session.user?.image ?? undefined}
           />
         )}
         <MobileNavigation />
