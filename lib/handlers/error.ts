@@ -23,10 +23,21 @@ function formatResponse(
     : { status, ...responseContent };
 }
 
+type ServerError = {
+  status: number;
+  success: boolean;
+  error: { message: string; details?: Record<string, string[]> };
+};
+
+export function handleError(error: unknown, responseType: "api"): NextResponse;
+export function handleError(
+  error: unknown,
+  responseType?: "server"
+): ServerError;
 export function handleError(
   error: unknown,
   responseType: ResponseType = "server"
-) {
+): NextResponse | ServerError {
   if (error instanceof RequestError) {
     logger.error(
       { err: error },
