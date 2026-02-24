@@ -1,15 +1,25 @@
 "use server";
 
 import Answer, { IAnswer } from "@/database/answer.model";
-import { CreateAnswerParams, GetAnswerParams } from "@/types/action";
+import {
+  CreateAnswerParams,
+  DeleteAnswerParams,
+  GetAnswerParams,
+} from "@/types/action";
 import { ActionRespone, AnswerDB, ErrorResponse } from "@/types/global";
 import action from "../handlers/action";
-import { CreateAnswerSchema, GetAnswerSchema } from "../validation";
+import {
+  CreateAnswerSchema,
+  DeleteAnswerSchema,
+  GetAnswerSchema,
+} from "../validation";
 import { handleError } from "../handlers/error";
 import mongoose from "mongoose";
-import { Question } from "@/database";
+import { Question, Vote } from "@/database";
 import { revalidatePath } from "next/cache";
 import ROUTES from "@/constants/routes";
+import { after } from "next/server";
+import { createInteraction } from "./interaction.action";
 
 export async function createAnswer(
   params: CreateAnswerParams
@@ -50,6 +60,16 @@ export async function createAnswer(
     }
     question.answers += 1;
     await question.save({ session });
+
+    after(async () => {
+      await createInteraction({
+        action: "post",
+        actionId: newAnswer._id.toString(),
+        actionTarget: "answer",
+        authorId: userId as string,
+      });
+    });
+
     await session.commitTransaction();
 
     revalidatePath(ROUTES.QUESTION(questionId));
@@ -120,6 +140,60 @@ export async function getAnswers(
         totalAnswers,
       },
     };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function deleteAnswer(
+  params: DeleteAnswerParams
+): Promise<ActionRespone> {
+  const validationResult = await action({
+    params,
+    schema: DeleteAnswerSchema,
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { answerId } = validationResult.params!;
+  const { user } = validationResult.session!;
+
+  try {
+    const answer = await Answer.findById(answerId);
+    if (!answer) throw new Error("Answer not found");
+
+    if (answer.author.toString() !== user?.id)
+      throw new Error("You're not allowed to delete this answer");
+
+    // reduce the question answers count
+    await Question.findByIdAndUpdate(
+      answer.question,
+      { $inc: { answers: -1 } },
+      { new: true }
+    );
+
+    // delete votes associated with answer
+    await Vote.deleteMany({ actionId: answerId, actionType: "answer" });
+
+    // delete the answer
+    await Answer.findByIdAndDelete(answerId);
+
+    // log the interaction
+    after(async () => {
+      await createInteraction({
+        action: "delete",
+        actionId: answerId,
+        actionTarget: "answer",
+        authorId: user?.id as string,
+      });
+    });
+
+    revalidatePath(`/profile/${user?.id}`);
+
+    return { success: true };
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }

@@ -11,7 +11,7 @@ import {
 } from "../validation";
 import action from "../handlers/action";
 import { handleError } from "../handlers/error";
-import mongoose, { QueryFilter } from "mongoose";
+import mongoose, { QueryFilter, Types } from "mongoose";
 import Question from "@/database/question.model";
 import Tag, { ITag } from "@/database/tag.model";
 import TagQuestion from "@/database/tagQuestion.model";
@@ -23,10 +23,13 @@ import {
   EditQuestionParams,
   GetQuestionParams,
   IncrementViewsParams,
+  RecommendationParams,
 } from "@/types/action";
 import { revalidatePath } from "next/cache";
 import dbConnet from "../mongoose";
-import { Answer, Collection, Vote } from "@/database";
+import { Answer, Collection, Interaction, Vote } from "@/database";
+import { after } from "next/server";
+import { createInteraction } from "./interaction.action";
 
 export async function createQuestion(
   params: CreateQuestionParams
@@ -79,6 +82,15 @@ export async function createQuestion(
       { $push: { tags: { $each: tagIds } } },
       { session }
     );
+
+    after(async () => {
+      await createInteraction({
+        action: "post",
+        actionId: question._id.toString(),
+        actionTarget: "question",
+        authorId: userId as string,
+      });
+    });
 
     await session.commitTransaction();
     return {
@@ -237,6 +249,61 @@ export async function getQuestion(
   }
 }
 
+export async function getRecommendedQuestions({
+  userId,
+  query,
+  skip,
+  limit,
+}: RecommendationParams) {
+  const interactions = await Interaction.find({
+    user: new Types.ObjectId(userId),
+    actionType: "question",
+    action: { $in: ["upvote", "bookmark", "view", "downvote", "post"] },
+  })
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .lean();
+
+  const interactedQuestionIds = interactions.map((i) => i.actionId);
+
+  const interactedQuestions = await Question.find({
+    _id: { $in: interactedQuestionIds },
+  }).select("tags");
+
+  const allTags = interactedQuestions.flatMap((q) =>
+    q.tags.map((tag: Types.ObjectId) => tag.toString())
+  );
+
+  const uniqueTags = [...new Set(allTags)];
+
+  const recommendedQuery: QueryFilter<typeof Question> = {
+    _id: { $nin: interactedQuestionIds },
+    author: { $ne: new Types.ObjectId(userId) },
+    tags: { $in: uniqueTags.map((id) => new Types.ObjectId(id)) },
+  };
+  if (query) {
+    recommendedQuery.$or = [
+      { title: { $regex: query, $options: "i" } },
+      { content: { $regex: query, $options: "i" } },
+    ];
+  }
+
+  const questions = await Question.find(recommendedQuery)
+    .populate("tags", "name")
+    .populate("author", "name image")
+    .sort({ upvotes: -1, views: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  const total = await Question.countDocuments(recommendedQuery);
+
+  return {
+    question: JSON.parse(JSON.stringify(questions)),
+    isNext: total > skip + questions.length,
+  };
+}
+
 export async function getQuestions(
   params: PaginationSearchParams
 ): Promise<ActionRespone<{ questions: IQuestion[]; isNext: boolean }>> {
@@ -254,8 +321,21 @@ export async function getQuestions(
 
   const filterQuery: QueryFilter<typeof Question> = {};
 
-  if (filter === "recommended")
-    return { success: true, data: { questions: [], isNext: false } };
+  if (filter === "recommended") {
+    const recommendedResult = await getRecommendedQuestions({
+      userId: validationResult.session?.user?.id!,
+      query,
+      skip,
+      limit,
+    });
+    return {
+      success: true,
+      data: {
+        questions: JSON.parse(JSON.stringify(recommendedResult.question)),
+        isNext: recommendedResult.isNext,
+      },
+    };
+  }
 
   if (query) {
     filterQuery.$or = [
@@ -414,6 +494,15 @@ export async function deleteQuestion(
     }
 
     await Question.findByIdAndDelete(questionId).session(session);
+
+    after(async () => {
+      await createInteraction({
+        action: "delete",
+        actionId: questionId,
+        actionTarget: "question",
+        authorId: user?.id as string,
+      });
+    });
 
     await session.commitTransaction();
     session.endSession();

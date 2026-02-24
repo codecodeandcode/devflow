@@ -140,7 +140,7 @@ export const AIAnswerSchema = z.object({
     .string()
     .min(5, { message: "需要内容" })
     .max(200, { message: "问题太长了，请精简一下" }),
-  content: z.string().min(100, { message: "需要内容大于100个字符" }),
+  content: z.string().optional(),
 });
 
 export const CreateVoteSchema = z.object({
@@ -210,4 +210,8 @@ export const CreateInteractionSchema = z.object({
   actionTarget: z.enum(["question", "answer"], {
     message: "动作目标必须是'question'或'answer'",
   }),
+});
+
+export const DeleteAnswerSchema = z.object({
+  answerId: z.string().min(1, { message: "需要答案ID" }),
 });

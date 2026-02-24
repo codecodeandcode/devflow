@@ -14,10 +14,28 @@ import { getQuestion, incrementViews } from "@/lib/actions/question.action";
 import { hasVoted } from "@/lib/actions/vote.action";
 import { formatNumber, getTimeStamp } from "@/lib/utils";
 import { RouterParams } from "@/types/global";
+import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { Suspense } from "react";
+
+export async function generateMetadata({
+  params,
+}: RouterParams): Promise<Metadata> {
+  const { id } = await params;
+  const { success, data } = await getQuestion({ questionId: id });
+  if (!success || !data) {
+    return {
+      title: "问题不存在",
+      description: "该问题不存在或已被删除。",
+    };
+  } else
+    return {
+      title: data.title,
+      description: data.content.slice(0, 160),
+    };
+}
 
 export default async function QuestionDetail({
   params,
